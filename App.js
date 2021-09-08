@@ -1,11 +1,13 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef } from 'react';
 import {
   SafeAreaView,
   View,
   FlatList,
   StyleSheet,
   Text,
+  TextInput,
   StatusBar,
+  Keyboard,
   Button } from 'react-native';
   import { NavigationContainer } from '@react-navigation/native';
   import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -13,7 +15,9 @@ import {
 
   const NotasScreen = ({navigation}) => {
     const [datos, setDatos] = useState([]);
-  
+    const [nuevoDato, setNuevoDato] = useState({});
+    const inputTitulo = useRef();
+    const lista = useRef();
   
     useEffect(() => {
       // Update the document title using the browser API
@@ -38,10 +42,15 @@ import {
     }
   
     function agregarItem() {
-      setDatos([...datos, {
-        id: '4',
-        title: 'Quart Item'
-      }]);
+      Keyboard.dismiss();
+      inputTitulo.current.clear();
+      setDatos([...datos, nuevoDato]);
+      lista.current.scrollToEnd({animated: true})
+      fetch('https://erpbackaspnetcore31.azurewebsites.net/api/notas')
+        .then((response) => response.json())
+        .then((json) => {
+          console.log(json);
+      })
     }
   
     const Item = ({ title }) => (
@@ -54,9 +63,19 @@ import {
       <Item title={item.title} />
     );
   
+    const onChangeText = (title) => {
+      setNuevoDato({id: Math.floor((Math.random())*10000), title: title});
+    }
+
     return (
       <SafeAreaView style={styles.container}>
         <View>
+          <TextInput
+            onChangeText={onChangeText}
+            onSubmitEditing={agregarItem}
+            value={nuevoDato.title}
+            ref={inputTitulo}
+          />
           <Button title="Ir a pagina 2" 
             onPress={() =>
               navigation.navigate('Pagina2', {nombre: 'Juan'})
@@ -74,6 +93,7 @@ import {
             data={datos}
             renderItem={renderItem}
             keyExtractor={item => item.id}
+            ref={lista}
           />
       </SafeAreaView>
     );
